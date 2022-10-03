@@ -1,7 +1,9 @@
-import 'dart:convert';
+
 
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:newsapi_devcamp/services/api_service.dart';
+
+import '../models/news_model.dart';
 
 class Home extends StatefulWidget {
 
@@ -12,44 +14,33 @@ class Home extends StatefulWidget {
 
 
 class _HomeState extends State<Home> {
-  late  String content;
-  late String description;
-  @override
-  void initState() {
-   getNews();
-    super.initState();
 
-  }
-  getNews()async{
-    http.Response response = await http.get(Uri.parse('https://newsapi.org/v2/everything?q=tesla&from=2022-08-26&sortBy=publishedAt&apiKey=6d443012c74b4b95b201b847cf0b899a'));
-   if(response.statusCode == 200){
-     print(response.body);
-
-     Map jsonData = json.decode(response.body) ;
-     setState(() {
-       content= jsonData["articles"]["content"];
-       description = jsonData["articles"]["description"];
-     });
-   }
-   else{
-     print('error!');
-   }
-  }
-  userResponse(){
-
-  }
+ApiService client = ApiService();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Today\'s News'),
+        title:Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text('Tesla',style: TextStyle(color: Colors.black),),
+            Text('News',style: TextStyle(color: Colors.red.shade800),),
+          ],
+        )
       ),
-      body: Column(
-        children: [
-          Text(description),
-          Text(content) ,
-        ],
-      ),
+      body: FutureBuilder(
+        future: client.getArticle(),
+        builder: (BuildContext ctx, AsyncSnapshot<List<Article>> snapshot){
+          if(snapshot.hasData){
+            return Center(
+              child: Text('Success'),
+            );
+          }
+          return Center (
+            child: CircularProgressIndicator(),
+          );
+        },
+      )
     );
   }
 }
